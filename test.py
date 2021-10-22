@@ -1,4 +1,5 @@
 # import the necessary packages
+from numpy.core.numerictypes import obj2sctype
 from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 from imutils.video import VideoStream
@@ -91,6 +92,8 @@ ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
 trackers = []
 trackableObjects = {}
 
+objects_trace = {}
+
 # initialize the total number of frames processed thus far, along
 # with the total number of objects that have moved either up or down
 totalFrames = 0
@@ -168,6 +171,7 @@ while True:
                 # for the object
                 box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
                 (startX, startY, endX, endY) = box.astype("int")
+                # print((startX, startY, endX, endY))
 
                 # construct a dlib rectangle object from the bounding
                 # box coordinates and then start the dlib correlation
@@ -199,21 +203,29 @@ while True:
             endX = int(pos.right())
             endY = int(pos.bottom())
 
+            # print((startX, startY, endX, endY))
+
             # add the bounding box coordinates to the rectangles list
             rects.append((startX, startY, endX, endY))
 
     # draw a horizontal line in the center of the frame -- once an
     # object crosses this line we will determine whether they were
     # moving 'up' or 'down'
-    cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
 
     # use the centroid tracker to associate the (1) old object
     # centroids with (2) the newly computed object centroids
     objects = ct.update(rects)
 
     # loop over the tracked objects
-    for (objectID, centroid) in objects.items():
-        print(objectID, centroid)
+    for (objectID, values) in objects.items():
+
+        if objectID not in objects_trace:
+            objects_trace[objectID] = {"rects": [], "centroids": []}
+        centroid = values["centroid"]
+        rect = values["rect"]
+
+        objects_trace[objectID]["centroids"].append(centroid)
+        objects_trace[objectID]["rects"].append(rect)
         # check to see if a trackable object exists for the current
         # object ID
         to = trackableObjects.get(objectID, None)
@@ -265,12 +277,11 @@ while True:
             2,
         )
         cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+        cv2.rectangle(frame, rect[0:2], rect[-2:], (0, 255, 0), 1)
 
     # construct a tuple of information we will be displaying on the
     # frame
-    info = [
-        ("Status", status),
-    ]
+    info = [("Status", status), ("totalFrames", totalFrames)]
 
     # loop over the info tuples and draw them on our frame
     for (i, (k, v)) in enumerate(info):
@@ -321,3 +332,50 @@ else:
 
 # close any open windows
 cv2.destroyAllWindows()
+
+
+# playground --------------------------------------------------
+def get_reshaped_rects(lst, max_height, max_width):
+    new_lst = []
+    for x1, y1, x2, y2 in lst:
+        height = y2 - y1
+        width = x2 - x1
+        h_add_one, w_add_one = 0, 0
+        if height % 2 != 0:
+            h_add_one = 1
+        if width % 2 != 0:
+            w_add_one = 1
+        y2 = y2 + (max_height - height) // 2 + h_add_one
+        y1 = y1 - (max_height - height) // 2
+        x2 = x2 + (max_width - width) // 2 + w_add_one
+        x1 = x1 - (max_width - width) // 2
+        new_lst.append((x1, y1, x2, y2))
+    return new_lst
+
+
+vs = cv2.VideoCapture(args["input"])
+writer = cv2.VideoWriter("output/cropped.avi", fourcc, 30, (180, 67), True)
+frame_num = 0
+object = objects_trace[0]["rects"]
+new_rects = get_reshaped_rects(object, 180, 67)
+
+while True:
+    if frame_num >= len(new_rects):
+        break
+
+    # grab the next frame and handle if we are reading from either
+    # VideoCapture or VideoStream
+    frame = vs.read()
+    frame = frame[1] if args.get("input", False) else frame
+    frame = imutils.resize(frame, width=400)
+    rect = new_rects[frame_num]
+    frame = frame[rect[1] : rect[3], rect[0] : rect[2]]
+    cv2.imshow("frame", frame)
+    if cv2.waitKey(1) == 27:
+        exit(0)
+
+    frame_num += 1
+
+    writer.write(frame)
+if writer is not None:
+    writer.release()
