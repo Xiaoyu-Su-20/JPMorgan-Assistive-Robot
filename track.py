@@ -335,12 +335,6 @@ else:
 cv2.destroyAllWindows()
 
 
-frame_num = 0
-object = objects_trace[0]["rects"]
-print(object)
-# new_rects = get_reshaped_rects(object, 180, 67)
-
-
 def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3):
     """[summary]
 
@@ -352,11 +346,14 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3):
     """
     vs = cv2.VideoCapture(input_dir)
 
-    if output_dir not in os.listdir():
+    output_parent, output_folder = (
+        os.path.dirname(output_dir),
+        os.path.basename(output_dir),
+    )
+    if output_folder not in os.listdir(output_parent):
         os.mkdir(output_dir)
 
     frame_num = 0
-
     while True:
         if frame_num >= len(obj_rects):
             break
@@ -370,7 +367,9 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3):
 
         if frame_num % skip_frame == 0:
             try:
-                cv2.imwrite(f"{output_dir}/frame%d.jpg" % frame_num, frame)
+                cv2.imwrite(
+                    f"{output_parent}/{output_folder}/frame%d.jpg" % frame_num, frame
+                )
             except:
                 print("Problem")
                 pass
@@ -382,6 +381,17 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3):
 
 
 openpose_path = "C:\\Users\sux\Desktop\openpose\input"
-img_folder_path = os.path.join(openpose_path, os.path.basename(args["input"]))
+img_folder = os.path.join(
+    openpose_path, os.path.splitext(os.path.basename(args["input"]))[0]
+)
 
-skipframe_img(args["input"], img_folder_path, object, skip_frame=3)
+
+for id, object in objects_trace.items():
+    # if fewer than 60 frames, view as irrelevant
+    if len(object["rects"]) < 60:
+        continue
+    rects = object["rects"]
+
+    skipframe_img(args["input"], f"{img_folder}_{id}", rects, skip_frame=3)
+
+# the naming is creator_action_videoNumber_ObjectIDInVideo
