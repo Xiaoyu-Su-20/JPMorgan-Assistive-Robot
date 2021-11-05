@@ -12,6 +12,7 @@ import time
 import dlib
 import cv2
 
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument(
@@ -335,7 +336,7 @@ else:
 cv2.destroyAllWindows()
 
 
-def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3):
+def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
     """[summary]
 
     Args:
@@ -365,7 +366,7 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3):
         rect = obj_rects[frame_num]
         frame = frame[rect[1] : rect[3], rect[0] : rect[2]]
 
-        if frame_num % skip_frame == 0:
+        if frame_num % skip_frame == offset:
             try:
                 cv2.imwrite(
                     f"{output_parent}/{output_folder}/frame%d.jpg" % frame_num, frame

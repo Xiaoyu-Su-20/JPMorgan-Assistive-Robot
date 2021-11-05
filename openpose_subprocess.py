@@ -2,7 +2,6 @@ import subprocess
 import os
 
 openpose_path = "C:\\Users\sux\Desktop\openpose"
-os.chdir(openpose_path)
 
 input_path = os.path.join(openpose_path, "input")
 output_path = os.path.join(openpose_path, "output")

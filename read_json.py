@@ -40,6 +40,7 @@ def get_feature_matrix(folder_path):
     return feature
 
 
+# for all keypoints JSON folder in the output folder, get the feature matrix
 path = "C:\\Users\sux\Desktop\openpose\output"
 for folder in os.listdir(path):
     if folder.startswith("keypoints"):
