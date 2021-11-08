@@ -285,25 +285,25 @@ while True:
     # frame
     info = [("Status", status), ("totalFrames", totalFrames)]
 
-    # loop over the info tuples and draw them on our frame
-    for (i, (k, v)) in enumerate(info):
-        text = "{}: {}".format(k, v)
-        cv2.putText(
-            frame,
-            text,
-            (10, H - ((i * 20) + 20)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            (0, 0, 255),
-            2,
-        )
+    # # loop over the info tuples and draw them on our frame
+    # for (i, (k, v)) in enumerate(info):
+    #     text = "{}: {}".format(k, v)
+    #     cv2.putText(
+    #         frame,
+    #         text,
+    #         (10, H - ((i * 20) + 20)),
+    #         cv2.FONT_HERSHEY_SIMPLEX,
+    #         0.6,
+    #         (0, 0, 255),
+    #         2,
+    #     )
+    # # show the output frame
+    # cv2.imshow("Frame", frame)
 
     # check to see if we should write the frame to disk
     # if writer is not None:
     #     writer.write(frame)
 
-    # show the output frame
-    cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
 
     # if the `q` key was pressed, break from the loop
