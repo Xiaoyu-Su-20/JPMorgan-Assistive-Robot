@@ -25,7 +25,7 @@ ap.add_argument(
     "-c",
     "--confidence",
     type=float,
-    default=0.4,
+    default=0.5,
     help="minimum probability to filter weak detections",
 )
 ap.add_argument(
@@ -84,8 +84,7 @@ writer = None
 
 # initialize the frame dimensions (we'll set them as soon as we read
 # the first frame from the video)
-W = None
-H = None
+W, H = None, None
 
 # instantiate our centroid tracker, then initialize a list to store
 # each of our dlib correlation trackers, followed by a dictionary to
@@ -99,13 +98,13 @@ objects_trace = {}
 # initialize the total number of frames processed thus far, along
 # with the total number of objects that have moved either up or down
 totalFrames = 0
-totalDown = 0
-totalUp = 0
 
 # start the frames per second throughput estimator
 fps = FPS().start()
 
 # loop over frames from the video stream
+resize_width = 450
+resize_height = 300
 while True:
     # grab the next frame and handle if we are reading from either
     # VideoCapture or VideoStream
@@ -120,7 +119,7 @@ while True:
     # resize the frame to have a maximum width of 500 pixels (the
     # less data we have, the faster we can process it), then convert
     # the frame from BGR to RGB for dlib
-    frame = imutils.resize(frame, width=500)
+    frame = cv2.resize(frame, (resize_width, resize_height))
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     # if the frame dimensions are empty, set them
@@ -247,22 +246,6 @@ while True:
             direction = centroid[1] - np.mean(y)
             to.centroids.append(centroid)
 
-            # check to see if the object has been counted or not
-            if not to.counted:
-                # if the direction is negative (indicating the object
-                # is moving up) AND the centroid is above the center
-                # line, count the object
-                if direction < 0 and centroid[1] < H // 2:
-                    totalUp += 1
-                    to.counted = True
-
-                # if the direction is positive (indicating the object
-                # is moving down) AND the centroid is below the
-                # center line, count the object
-                elif direction > 0 and centroid[1] > H // 2:
-                    totalDown += 1
-                    to.counted = True
-
         # store the trackable object in our dictionary
         trackableObjects[objectID] = to
 
@@ -337,6 +320,7 @@ cv2.destroyAllWindows()
 
 
 def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
+    global resize_width, resize_height
     """[summary]
 
     Args:
@@ -353,6 +337,9 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
     )
     if output_folder not in os.listdir(output_parent):
         os.mkdir(output_dir)
+    else:
+        for f in os.listdir(output_dir):
+            os.remove(os.path.join(output_dir, f))
 
     frame_num = 0
     while True:
@@ -362,10 +349,19 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
         # grab the next frame and handle if we are reading from either
         # VideoCapture or VideoStream
         frame = vs.read()[1]
-        frame = imutils.resize(frame, width=500)
-        rect = obj_rects[frame_num]
+        frame = cv2.resize(frame, (resize_width, resize_height))
+        rect = list(obj_rects[frame_num])
+
+        # consider widen the boundaries a bit
+
+        rect[0] = rect[0] - 10 if rect[0] > 10 else 0
+        rect[1] = rect[1] - 10 if rect[1] > 10 else 0
+        rect[2] = rect[2] + 10 if rect[2] < resize_width - 10 else resize_width
+        rect[3] = rect[3] + 10 if rect[3] < resize_height - 10 else resize_height
+
         frame = frame[rect[1] : rect[3], rect[0] : rect[2]]
 
+        # store every kth image
         if frame_num % skip_frame == offset:
             try:
                 cv2.imwrite(
@@ -381,18 +377,18 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
         frame_num += 1
 
 
-openpose_path = "C:\\Users\sux\Desktop\openpose\input"
+openpose_path = args.get("output")
 img_folder = os.path.join(
     openpose_path, os.path.splitext(os.path.basename(args["input"]))[0]
 )
 
 
 for id, object in objects_trace.items():
-    # if fewer than 60 frames, view as irrelevant
-    if len(object["rects"]) < 60:
+    # if fewer than 100 frames, view as irrelevant
+    if len(object["rects"]) < 100:
         continue
     rects = object["rects"]
 
+    # the naming is creator_action_videoNumber_ObjectIDInVideo
     skipframe_img(args["input"], f"{img_folder}_{id}", rects, skip_frame=3)
 
-# the naming is creator_action_videoNumber_ObjectIDInVideo
