@@ -5,4 +5,12 @@ https://www.pyimagesearch.com/2018/08/13/opencv-people-counter/
 python track.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt --model mobilenet_ssd/MobileNetSSD_deploy.caffemodel --input videos/walking.mp4
 
 ## Pipeline 
-Run CV human tracking to get the rectangle/ centroid
+
+### Step 1: get images from videos 
+python opencv_subprocess.py --input C:/Users/sux/Desktop/people-counting-opencv/videos --output C:/Users/sux/Desktop/openpose/input
+
+### Step 2: get keypoints json files from images 
+python openpose_subprocess.py --openpose_path C:/Users/sux/Desktop/openpose --input input --output output
+
+### Step 3: combine the keypoints and standardize them
+python get_feature_csv.py --json_path C:/Users/sux/Desktop/openpose/output --image_path C:/Users/sux/Desktop/openpose/input --output C:/Users/sux/Desktop/openpose_feature.csv

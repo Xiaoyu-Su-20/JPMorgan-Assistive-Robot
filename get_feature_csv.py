@@ -4,6 +4,7 @@ import re
 import pandas as pd
 import cv2
 from functools import reduce
+import argparse
 
 
 def get_feature_matrix(img_path, folder_path):
@@ -60,32 +61,46 @@ def get_feature_matrix(img_path, folder_path):
     return feature_lst
 
 
-# for all keypoints JSON folder in the output folder, get the feature matrix
-path = "C:\\Users\sux\Desktop\openpose\output"
-img_path = "C:\\Users\sux\Desktop\openpose\input"
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-j",
+        "--json_path",
+        required=True,
+        help="path to the folder containing JSON folders",
+    )
+    ap.add_argument(
+        "-i",
+        "--image_path",
+        required=True,
+        help="path to the folder containing image folders",
+    )
+    ap.add_argument("-o", "--output", required=True, help="output path to the csv file")
+    args = vars(ap.parse_args())
 
-all_data = []
-for folder in os.listdir(path):
-    if folder.startswith("keypoints"):
-        full_folder_path = os.path.join(path, folder)
-        features = get_feature_matrix(img_path, full_folder_path)
-        all_data.extend(features)
-df = pd.DataFrame(all_data)
-coordinates_cols = [[f"x{i}", f"y{i}", f"c{i}"] for i in range(25)]
-coordinates_cols = reduce(lambda x, y: x + y, coordinates_cols)
-cols = ["folder_name", "frame_num", "height", "width"] + coordinates_cols
-df.columns = cols
+    # for all keypoints JSON folder in the output folder, get the feature matrix
+    json_path = args["json_path"]
+    img_path = args["image_path"]
 
-# normalize the data by scaling the width and height to 1, then subtract every coordinates
-# by the coordinates of the centorid
-# basically, we want the coordinates of the keypoints when centroid is (0,0) and
-# both the width and the height are 1
-for i in range(25):
-    df[f"x{i}"] = df[f"x{i}"] / df["width"] - 0.5
-    df[f"y{i}"] = df[f"y{i}"] / df["height"] - 0.5
+    all_data = []
+    for folder in os.listdir(json_path):
+        if folder.startswith("keypoints"):
+            full_folder_path = os.path.join(json_path, folder)
+            features = get_feature_matrix(img_path, full_folder_path)
+            all_data.extend(features)
+    df = pd.DataFrame(all_data)
+    coordinates_cols = [[f"x{i}", f"y{i}", f"c{i}"] for i in range(25)]
+    coordinates_cols = reduce(lambda x, y: x + y, coordinates_cols)
+    cols = ["folder_name", "frame_num", "height", "width"] + coordinates_cols
+    df.columns = cols
 
-df.to_csv("C:/Users/sux/desktop/data.csv", index=False)
+    # normalize the data by scaling the width and height to 1, then subtract every coordinates
+    # by the coordinates of the centorid
+    # basically, we want the coordinates of the keypoints when centroid is (0,0) and
+    # both the width and the height are 1
+    for i in range(25):
+        df[f"x{i}"] = df[f"x{i}"] / df["width"] - 0.5
+        df[f"y{i}"] = df[f"y{i}"] / df["height"] - 0.5
 
-
-# print(features)
+    df.to_csv(args["output"], index=False)
 
