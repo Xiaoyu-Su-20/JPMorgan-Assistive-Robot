@@ -12,5 +12,5 @@ python opencv_subprocess.py --input C:/Users/sux/Desktop/people-counting-opencv/
 ### Step 2: get keypoints json files from images 
 python openpose_subprocess.py --openpose_path C:/Users/sux/Desktop/openpose --input input --output output
 
-### Step 3: combine the keypoints and standardize them
+### Step 3: combine the keypoints and standardize them to get the final feature csv
 python get_feature_csv.py --json_path C:/Users/sux/Desktop/openpose/output --image_path C:/Users/sux/Desktop/openpose/input --output C:/Users/sux/Desktop/openpose_feature.csv
