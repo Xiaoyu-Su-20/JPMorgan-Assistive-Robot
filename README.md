@@ -26,3 +26,7 @@ python openpose_subprocess.py --openpose_path C:/Users/sux/Desktop/openpose --in
 ```
 python get_feature_csv.py --json_path C:/Users/sux/Desktop/openpose/output --image_path C:/Users/sux/Desktop/openpose/input --output C:/Users/sux/Desktop/openpose_feature.csv
 ```
+
+### data augmentation
+mirror the images
+shift left/right if possible
