@@ -12,15 +12,13 @@ if __name__ == "__main__":
     output_path = args["output"]
 
     for file in os.listdir(input_path):
-        if not file.endswith(".mp4"):
-            continue
         subprocess.run(
             [
                 "python",
                 f"track.py",
                 f"--prototxt=mobilenet_ssd/MobileNetSSD_deploy.prototxt",
                 "--model=mobilenet_ssd/MobileNetSSD_deploy.caffemodel",
-                f"--input=videos/{file}",
+                f"--input={input_path}/{file}",
                 f"--output={output_path}",
             ],
             text=True,

@@ -7,7 +7,7 @@ python track.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt --model mo
 ## Pipeline 
 
 ### Step 1: get images from videos 
-python opencv_subprocess.py --input C:/Users/sux/Desktop/people-counting-opencv/videos --output C:/Users/sux/Desktop/openpose/input
+python opencv_subprocess.py --input D:/video --output C:/Users/sux/Desktop/openpose/input
 
 ### Step 2: get keypoints json files from images 
 python openpose_subprocess.py --openpose_path C:/Users/sux/Desktop/openpose --input input --output output

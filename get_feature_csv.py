@@ -41,7 +41,11 @@ def get_feature_matrix(img_path, folder_path):
 
         # read the corresponding image and get the width and height
         im = cv2.imread(f"{img_path}/{img_folder_name}/frame{frame_num}.jpg")
-        height, width, _ = im.shape
+        try:
+            height, width, _ = im.shape
+        except:
+            print(f"{img_path}/{img_folder_name}/frame{frame_num}.jpg")
+            raise Exception
 
         # append all attributes to the feature_lst
         feature_lst.append(
