@@ -28,7 +28,9 @@ python get_feature_csv.py --json_path C:/Users/sux/Desktop/openpose/output --ima
 ```
 
 ### Data Visualization
+```
 python visualize.py --csv openpose_feature.csv --folder_name xy_lookaround_1_0 --output video.avi
+```
 
 ### data augmentation
 mirror the images
