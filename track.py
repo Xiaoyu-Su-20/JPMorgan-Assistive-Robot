@@ -391,4 +391,3 @@ for id, object in objects_trace.items():
 
     # the naming is creator_action_videoNumber_ObjectIDInVideo
     skipframe_img(args["input"], f"{img_folder}_{id}", rects, skip_frame=3)
-
