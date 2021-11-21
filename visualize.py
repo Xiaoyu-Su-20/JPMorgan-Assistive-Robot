@@ -66,16 +66,17 @@ if __name__ == "__main__":
         null_set = set([])
 
         # plot circles
-        for k, v in color_map.items():
-
-            point = row[f"x{k}"], row[f"y{k}"]
+        for ix, color in color_map.items():
+            point = row[f"x{ix}"], row[f"y{ix}"]
+            # if the point is not identified, skip
             if point[0] == 0 and point[1] == 0:
-                null_set.add(k)
+                null_set.add(ix)
                 continue
-            plt.plot(*point, marker="o", color=v)
+            plt.plot(*point, marker="o", color=color)
 
         # plot lines
         for t in line_set:
+            # if either of the point is not identified, skip
             if t[0] in null_set or t[1] in null_set:
                 continue
             p0 = row[f"x{t[0]}"], row[f"y{t[0]}"]
