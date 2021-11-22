@@ -55,8 +55,8 @@ subprocess.run(
     text=True,
 )
 
-# remove everything and recreate folders
-shutil.rmtree(f"{openpose_path}/input")
-shutil.rmtree(f"{openpose_path}/output")
-os.makedirs(f"{openpose_path}/input")
-os.makedirs(f"{openpose_path}/output")
+# # remove everything and recreate folders
+# shutil.rmtree(f"{openpose_path}/input")
+# shutil.rmtree(f"{openpose_path}/output")
+# os.makedirs(f"{openpose_path}/input")
+# os.makedirs(f"{openpose_path}/output")
