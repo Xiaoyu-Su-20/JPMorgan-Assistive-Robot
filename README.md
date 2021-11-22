@@ -35,3 +35,6 @@ python visualize.py --csv openpose_feature.csv --folder_name xy_lookaround_1_0 -
 ### data augmentation
 mirror the images
 shift left/right if possible
+
+### All in one go
+python all_in_one.py -cvi D:/video_test -op C:/Users/sux/Desktop/openpose -csv C:/Users/sux/Desktop/openpose_feature.csv

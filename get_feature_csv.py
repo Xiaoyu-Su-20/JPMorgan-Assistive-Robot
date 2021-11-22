@@ -5,6 +5,7 @@ import pandas as pd
 import cv2
 from functools import reduce
 import argparse
+import numpy as np
 
 
 def get_feature_matrix(img_path, folder_path):
@@ -102,7 +103,14 @@ if __name__ == "__main__":
     # by the coordinates of the centorid
     # basically, we want the coordinates of the keypoints when centroid is (0,0) and
     # both the width and the height are 1
+
     for i in range(25):
+        # if the pixel values exceed the image boundary, ignore them
+        df[f"x{i}"] = np.where(df[f"x{i}"] > df["width"], 0, df[f"x{i}"])
+        df[f"x{i}"] = np.where(df[f"y{i}"] > df["height"], 0, df[f"x{i}"])
+        df[f"y{i}"] = np.where(df[f"x{i}"] > df["width"], 0, df[f"y{i}"])
+        df[f"y{i}"] = np.where(df[f"y{i}"] > df["height"], 0, df[f"y{i}"])
+        # normalize
         df[f"x{i}"] = df[f"x{i}"] / df["width"] - 0.5
         df[f"y{i}"] = df[f"y{i}"] / df["height"] - 0.5
 

@@ -11,6 +11,8 @@ my_dpi = 100
 
 def video_from_img_folder(img_folder, video_path, fps, delete_img=True):
     images = [img for img in os.listdir(img_folder) if img.endswith(".png")]
+    images.sort(key=lambda x: int(os.path.splitext(x)[0]))
+    print(images)
     frame = cv2.imread(os.path.join(img_folder, images[0]))
     height, width, _ = frame.shape
 
@@ -66,11 +68,11 @@ if __name__ == "__main__":
         null_set = set([])
 
         # plot circles
-        for ix, color in color_map.items():
-            point = row[f"x{ix}"], row[f"y{ix}"]
+        for i, color in color_map.items():
+            point = row[f"x{i}"], row[f"y{i}"]
             # if the point is not identified, skip
             if point[0] == 0 and point[1] == 0:
-                null_set.add(ix)
+                null_set.add(i)
                 continue
             plt.plot(*point, marker="o", color=color)
 
@@ -84,7 +86,7 @@ if __name__ == "__main__":
             plt.plot([p0[0], p1[0]], [p0[1], p1[1]], color=t[2])
 
         plt.imshow(img)
-        plt.savefig(f"{img_folder}/frame{ix}.png")
+        plt.savefig(f"{img_folder}/{ix}.png")
         plt.close()
 
     video_from_img_folder(img_folder, video_path, video_fps, delete_img=True)
