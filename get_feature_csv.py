@@ -113,6 +113,6 @@ if __name__ == "__main__":
         # normalize
         df[f"x{i}"] = df[f"x{i}"] / df["width"] - 0.5
         df[f"y{i}"] = df[f"y{i}"] / df["height"] - 0.5
-
-    df.to_csv(args["output"], index=False)
+    num = df["folder_name"].nunique()
+    df.to_csv(f"{args['output']}/openpose_feature_{num}.csv", index=False)
 
