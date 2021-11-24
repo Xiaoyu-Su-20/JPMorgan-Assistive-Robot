@@ -26,6 +26,8 @@ def get_feature_matrix(img_path, folder_path):
         frame_num = int(re.findall("\d+", file)[0])
         with open(os.path.join(folder_path, file)) as f:
             data = json.load(f)["people"]
+            if len(data) == 0:
+                continue
             # sometimes there can be multiple identified skeleton in a single frame
             # only one is the one we want
             # we'll choose the one with the least number of zeros across keypoint values
