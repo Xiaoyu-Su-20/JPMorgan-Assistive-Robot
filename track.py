@@ -11,6 +11,7 @@ import imutils
 import time
 import dlib
 import cv2
+from math import ceil
 
 
 # construct the argument parse and parse the arguments
@@ -319,7 +320,15 @@ else:
 cv2.destroyAllWindows()
 
 
-def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
+def skipframe_img(
+    input_dir,
+    output_dir,
+    obj_rects,
+    video_sec=8,
+    skip_frame=3,
+    offset=0,
+    last_trim=0.8,
+):
     global resize_width, resize_height
     """[summary]
 
@@ -327,23 +336,35 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
         input_dir ([type]): [description]
         output_dir ([type]): [description]
         obj_rects ([type]): [description]
+        video_sec (int): the number of seconds for each video
         skip_frame (int, optional): Only keep every kth frame. Default to 3
+        last_trim (float, optional): Decide the threshold ratio to keep the last trimmed video. e.g.
+        last trim only has 6 seconds, but the required length is 8. The threshold decides whether to keep the 
+        video.
+        
     """
     vs = cv2.VideoCapture(input_dir)
 
-    output_parent, output_folder = (
-        os.path.dirname(output_dir),
-        os.path.basename(output_dir),
+    fps = vs.get(cv2.CAP_PROP_FPS)
+    per_video_frame = video_sec * fps  # frame per video before skipping frame
+    total_frame = int(vs.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    # whether to keep the last video
+    discard_last = (
+        1 if total_frame % per_video_frame < per_video_frame * last_trim else 0
     )
-    if output_folder not in os.listdir(output_parent):
-        os.mkdir(output_dir)
-    else:
-        for f in os.listdir(output_dir):
-            os.remove(os.path.join(output_dir, f))
+    # update total frame to total USABLE frame
+    total_frame = int(total_frame - total_frame % per_video_frame * discard_last)
+
+    for i in range(ceil(total_frame / per_video_frame)):
+        full_path = output_dir + f"_{i}"
+        os.mkdir(full_path)
+
+    print(f"rect len is {len(obj_rects)} and total frame is {total_frame-1}")
 
     frame_num = 0
     while True:
-        if frame_num >= len(obj_rects):
+        if frame_num >= total_frame - 1:
             break
 
         # grab the next frame and handle if we are reading from either
@@ -365,7 +386,9 @@ def skipframe_img(input_dir, output_dir, obj_rects, skip_frame=3, offset=0):
         if frame_num % skip_frame == offset:
             try:
                 cv2.imwrite(
-                    f"{output_parent}/{output_folder}/frame%d.jpg" % frame_num, frame
+                    f"{output_dir}_{int(frame_num // per_video_frame)}/frame%d.jpg"
+                    % frame_num,
+                    frame,
                 )
             except:
                 print("Problem")
@@ -382,12 +405,8 @@ img_folder = os.path.join(
     openpose_path, os.path.splitext(os.path.basename(args["input"]))[0]
 )
 
-
+SKIP_FRAME = 3
 for id, object in objects_trace.items():
-    # if fewer than 100 frames, view as irrelevant
-    if len(object["rects"]) < 100:
-        continue
     rects = object["rects"]
-
-    # the naming is creator_action_videoNumber_ObjectIDInVideo
-    skipframe_img(args["input"], f"{img_folder}_{id}", rects, skip_frame=3)
+    # the naming is creator_action_videoNumber_ObjectIDInVideo_videoOrder
+    skipframe_img(args["input"], f"{img_folder}_{id}", rects, skip_frame=SKIP_FRAME)

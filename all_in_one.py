@@ -22,6 +22,12 @@ assert "output" in os.listdir(
     openpose_path
 ), f"there is no folder called 'output' in {openpose_path}"
 
+# remove everything and recreate folders
+shutil.rmtree(f"{openpose_path}/input")
+shutil.rmtree(f"{openpose_path}/output")
+os.makedirs(f"{openpose_path}/input")
+os.makedirs(f"{openpose_path}/output")
+
 subprocess.run(
     [
         f"{python_path}",
@@ -55,8 +61,3 @@ subprocess.run(
     text=True,
 )
 
-# remove everything and recreate folders
-shutil.rmtree(f"{openpose_path}/input")
-shutil.rmtree(f"{openpose_path}/output")
-os.makedirs(f"{openpose_path}/input")
-os.makedirs(f"{openpose_path}/output")
