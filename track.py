@@ -360,8 +360,6 @@ def skipframe_img(
         full_path = output_dir + f"_{i}"
         os.mkdir(full_path)
 
-    print(f"rect len is {len(obj_rects)} and total frame is {total_frame-1}")
-
     frame_num = 0
     while True:
         if frame_num >= total_frame - 1:
