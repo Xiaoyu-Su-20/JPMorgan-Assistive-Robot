@@ -7,7 +7,7 @@ from imutils.video import VideoStream
 from imutils.video import FPS
 import numpy as np
 import argparse
-import imutils
+import shutil
 import time
 import dlib
 import cv2
@@ -222,12 +222,12 @@ while True:
     for (objectID, values) in objects.items():
 
         if objectID not in objects_trace:
-            objects_trace[objectID] = {"rects": [], "centroids": []}
+            objects_trace[objectID] = {"rects": {}, "centroids": {}}
         centroid = values["centroid"]
         rect = values["rect"]
 
-        objects_trace[objectID]["centroids"].append(centroid)
-        objects_trace[objectID]["rects"].append(rect)
+        objects_trace[objectID]["centroids"][totalFrames] = centroid
+        objects_trace[objectID]["rects"][totalFrames] = rect
         # check to see if a trackable object exists for the current
         # object ID
         to = trackableObjects.get(objectID, None)
@@ -249,44 +249,6 @@ while True:
 
         # store the trackable object in our dictionary
         trackableObjects[objectID] = to
-
-        # draw both the ID of the object and the centroid of the
-        # object on the output frame
-        text = "ID {}".format(objectID)
-        cv2.putText(
-            frame,
-            text,
-            (centroid[0] - 10, centroid[1] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (0, 255, 0),
-            2,
-        )
-        cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
-        cv2.rectangle(frame, rect[0:2], rect[-2:], (0, 255, 0), 1)
-
-    # construct a tuple of information we will be displaying on the
-    # frame
-    info = [("Status", status), ("totalFrames", totalFrames)]
-
-    # # loop over the info tuples and draw them on our frame
-    # for (i, (k, v)) in enumerate(info):
-    #     text = "{}: {}".format(k, v)
-    #     cv2.putText(
-    #         frame,
-    #         text,
-    #         (10, H - ((i * 20) + 20)),
-    #         cv2.FONT_HERSHEY_SIMPLEX,
-    #         0.6,
-    #         (0, 0, 255),
-    #         2,
-    #     )
-    # # show the output frame
-    # cv2.imshow("Frame", frame)
-
-    # check to see if we should write the frame to disk
-    # if writer is not None:
-    #     writer.write(frame)
 
     key = cv2.waitKey(1) & 0xFF
 
@@ -325,9 +287,9 @@ def skipframe_img(
     output_dir,
     obj_rects,
     video_sec=8,
-    skip_frame=3,
     offset=0,
     last_trim=0.8,
+    min_skeleton=0.5,
 ):
     global resize_width, resize_height
     """[summary]
@@ -337,15 +299,24 @@ def skipframe_img(
         output_dir ([type]): [description]
         obj_rects ([type]): [description]
         video_sec (int): the number of seconds for each video
-        skip_frame (int, optional): Only keep every kth frame. Default to 3
+        skip_frame (int, optional): 
         last_trim (float, optional): Decide the threshold ratio to keep the last trimmed video. e.g.
         last trim only has 6 seconds, but the required length is 8. The threshold decides whether to keep the 
         video.
+        min_skeleton (float, optional): Decide the threshold ratio to keep the human capture folder. Human must
+        appear at least this ratio of times in the original video.
         
     """
     vs = cv2.VideoCapture(input_dir)
 
     fps = vs.get(cv2.CAP_PROP_FPS)
+    # skip_frame: Only keep every kth frame. Default to 3
+    if fps < 10:
+        print("fps {fps} is too low. Abort tracking.")
+        return
+    else:
+        skip_frame = fps // 10
+
     per_video_frame = video_sec * fps  # frame per video before skipping frame
     total_frame = int(vs.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -365,14 +336,16 @@ def skipframe_img(
         if frame_num >= total_frame - 1:
             break
 
-        # grab the next frame and handle if we are reading from either
-        # VideoCapture or VideoStream
+        # grab the next frame
         frame = vs.read()[1]
+        if frame_num not in obj_rects:
+            frame_num += 1
+            continue
+
         frame = cv2.resize(frame, (resize_width, resize_height))
         rect = list(obj_rects[frame_num])
 
         # consider widen the boundaries a bit
-
         rect[0] = rect[0] - 10 if rect[0] > 10 else 0
         rect[1] = rect[1] - 10 if rect[1] > 10 else 0
         rect[2] = rect[2] + 10 if rect[2] < resize_width - 10 else resize_width
@@ -397,14 +370,21 @@ def skipframe_img(
 
         frame_num += 1
 
+    for i in range(ceil(total_frame / per_video_frame)):
+        full_path = output_dir + f"_{i}"
+        if len(os.listdir(full_path)) < int(
+            per_video_frame * min_skeleton // skip_frame
+        ):
+            shutil.rmtree(full_path)
+
 
 openpose_path = args.get("output")
 img_folder = os.path.join(
     openpose_path, os.path.splitext(os.path.basename(args["input"]))[0]
 )
 
-SKIP_FRAME = 3
 for id, object in objects_trace.items():
+    print(id)
     rects = object["rects"]
     # the naming is creator_action_videoNumber_ObjectIDInVideo_videoOrder
-    skipframe_img(args["input"], f"{img_folder}_{id}", rects, skip_frame=SKIP_FRAME)
+    skipframe_img(args["input"], f"{img_folder}_{id}", rects)
