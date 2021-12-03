@@ -65,6 +65,9 @@ def get_feature_matrix(img_path, folder_path):
         for i in feature_lst
     ]
 
+    if len(feature_lst) < 50:
+        return []
+
     return feature_lst
 
 
