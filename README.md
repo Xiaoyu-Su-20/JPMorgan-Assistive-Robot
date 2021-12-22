@@ -1,5 +1,5 @@
 # Description
-This is a pipeline that takes a folder of videos and output a csv file containing keypoints image of every frame of every video. It requires a local OpenPose software installed. The instructions can be found here: https://github.com/CMU-Perceptual-Computing-Lab/openpose. The folder needs to have a folder named "input" and a folder named "output". 
+The root directory contains a pipeline that takes a folder of videos and output a csv file containing keypoints image of every frame of every video. It requires a local OpenPose software installed. The instructions can be found here: https://github.com/CMU-Perceptual-Computing-Lab/openpose. The folder needs to have a folder named "input" and a folder named "output". 
 
 ## Run a sample video
 ```
