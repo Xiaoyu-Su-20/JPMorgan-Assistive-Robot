@@ -1,11 +1,7 @@
-# Original work
-https://www.pyimagesearch.com/2018/08/13/opencv-people-counter/
-
 # Description
-This is a pipeline that takes a folder of videos and output a csv file containing keypoints image of every frame of every video. It requires a local OpenPose software installed. The instructions can be found here: https://github.com/CMU-Perceptual-Computing-Lab/openpose.
+This is a pipeline that takes a folder of videos and output a csv file containing keypoints image of every frame of every video. It requires a local OpenPose software installed. The instructions can be found here: https://github.com/CMU-Perceptual-Computing-Lab/openpose. The folder needs to have a folder named "input" and a folder named "output". 
 
-
-# Run a sample video
+## Run a sample video
 ```
 python track.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt --model mobilenet_ssd/MobileNetSSD_deploy.caffemodel --input videos/xy_walking_1.mp4 --output videos
 ```
@@ -36,9 +32,9 @@ python get_feature_csv.py --json_path C:/Users/sux/Desktop/openpose/output --ima
 python visualize.py --csv openpose_feature.csv --folder_name xy_lookaround_1_0 --output video.avi
 ```
 
-### data augmentation
-mirror the images
-shift left/right if possible
-
 ### All in one go
 python all_in_one.py -cvi D:/video_test -op C:/Users/sux/Desktop/openpose -csv C:/Users/sux/Desktop
+
+## Original work
+https://www.pyimagesearch.com/2018/08/13/opencv-people-counter/
+https://github.com/CMU-Perceptual-Computing-Lab/openpose
